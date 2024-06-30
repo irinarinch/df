@@ -1,10 +1,16 @@
 interface IButtonProps {
     caption: string;
+    onClick: ()=>void;
 }
 
-const Button = (props: IButtonProps) => {
+const Button = ({caption, onClick}: IButtonProps) => {
   return (
-    <button className="conf-step__button conf-step__button-accent">{props.caption}</button>
+    <button 
+      className="conf-step__button conf-step__button-accent" 
+      onClick={onClick}
+    >
+      {caption}
+    </button>
   )
 }
 

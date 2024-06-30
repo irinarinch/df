@@ -9,12 +9,21 @@ class HallService {
         return response.data;
     }
 
+    async getHall(id: number) {
+        const response = await axios.get<IHall>(this.URL+'/' + id);
+        return response.data;
+    }
+
     async createHall(body: {}) {
         return await axios.post<IHall[]>(this.URL, body);
     }
 
     async updateHall(body: {}, id: string) {
         return await axios.patch<IHall[]>(this.URL+'/' + id, body);
+    }
+
+    async deleteHall(id: number) {
+        return await axios.delete(this.URL+'/' + id);
     }
 }
 
