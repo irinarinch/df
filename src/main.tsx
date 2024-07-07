@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import AdminPage from "./pages/AdminPage.tsx";
 import ClientPage from "./pages/ClientPage.tsx";
+
 import "../public/admin/CSS/styles.css";
 const router = createBrowserRouter([
   {

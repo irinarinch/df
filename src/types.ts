@@ -13,3 +13,15 @@ export interface IHall {
     "created_at": string,
     "updated_at": string,
 }
+
+export interface IChair {
+    "id": number,
+    'type': string,
+    'active': boolean,       
+    'free': boolean, 
+    'hall_id': number,
+    'hall_row': number,
+    'price': number,
+    "created_at": string,
+    "updated_at": string, 
+}

@@ -5,7 +5,7 @@ interface IListProps {
   halls: IHall[],
 }
 
-const HallsList = ({halls: halls}: IListProps) => {
+const HallsList = ({halls}: IListProps) => {
   return (
     <ul className="conf-step__list">
       {halls.map(hall => (<HallsListItem key={hall.created_at} hall={hall}/>))}
