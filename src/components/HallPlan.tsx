@@ -12,15 +12,19 @@ interface IHallProps {
 }
 
 const HallPlan = ({ hall, editRow, editPlace, chairs }: IHallProps) => {
-  function onClick() {
-    console.log("click chear");
+  function onClick(e: React.MouseEvent) {
+    console.log(e.target);
   }
 
-  function show(hall:IHall, row: number, place: number) {
+  function show(hall: IHall, row: number, place: number) {
+    const chair = chairs.find((chair) => chair.id === hall.id);
+    if (!chair) return;
+
+
     return [...Array(row)].map(() => (
       <Row>
         {[...Array(place)].map(() => (                    
-          <Chair props={chairs}/>
+            <Chair key={chair.created_at} chair={chair} onClick={onClick}/>
         ))}
       </Row>
     ));
@@ -42,8 +46,8 @@ const HallPlan = ({ hall, editRow, editPlace, chairs }: IHallProps) => {
         ) : (
           show(
             hall,
-            !editRow ? hall.row : editRow,
-            !editPlace ? hall.place : editPlace
+            editRow ? editRow : hall.row,
+            editPlace ? editPlace : hall.place 
           )
         )}
       </div>

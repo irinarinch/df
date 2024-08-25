@@ -10,4 +10,4 @@ const Row = (props: IRowProps) => {
   )
 }
 
-export default Row
+export default Row;

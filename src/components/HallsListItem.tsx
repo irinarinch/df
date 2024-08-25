@@ -1,17 +1,22 @@
 import { IHall } from '../types';
-import { hallService } from '../services/hall.service';
+
 
 interface IProps {
-    hall: IHall
+    hall: IHall,
+    onClick: (id: number) => void,
 }
 
-const HallsListItem = ({hall}: IProps) => {
+const HallsListItem = ({hall, onClick}: IProps) => {
     return (
         <li>
           Зал {hall.id}  
           <button 
             className="conf-step__button conf-step__button-trash" 
-            onClick={() => {hallService.deleteHall(hall.id)}}
+            onClick={() => {
+                onClick(hall.id);
+            }
+
+            }
           />
         </li>
       );

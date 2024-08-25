@@ -4,24 +4,29 @@
 
 import { IChair } from "../types";
 
-const classes = [
-  "conf-step__chair conf-step__chair_standart",
-  "conf-step__chair conf-step__chair_vip",
-  "conf-step__chair conf-step__chair_disabled",
-];
+// const classes = [
+//   "conf-step__chair conf-step__chair_standart",
+//   "conf-step__chair conf-step__chair_vip",
+//   "conf-step__chair conf-step__chair_disabled",
+// ];
 
-function Chair(props: IChair) {
-  function onClick(e: any) {
-    const newClassIndex =
-      (classes.indexOf(e.target.className) + 1) % classes.length;
+interface IProps {
+    chair: IChair;
+    onClick: (e: React.MouseEvent) => void; 
+}
 
-    e.target.className = classes[newClassIndex];
-    console.log(props);
-  }
+function Chair({chair, onClick}: IProps) {
+//   function onClick(e: any) {
+//     const newClassIndex =
+//       (classes.indexOf(e.target.className) + 1) % classes.length;
+//     e.target.className = classes[newClassIndex];
+//     console.log(e.target);
+//   }
 
   return (
     <span
-      className={`conf-step__chair conf-step__chair_${props.type}`}
+      data-hall={chair.hall_id}
+      className={`conf-step__chair conf-step__chair_${chair.type}`}
       onClick={onClick}
     ></span>
   );

@@ -3,7 +3,7 @@ import Paragraph from "./Paragraph";
 
 interface IListProps {
   array: IHall[];
-  onChange: (e: any) => void; // !!!!! any
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
 }
 
 const SelectorsBox = ({ array, onChange }: IListProps) => {

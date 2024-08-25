@@ -41,7 +41,7 @@ function App() {
   }
 
   async function update() {
-    await hallService.updateHall({"checked": false}, '9');
+    await hallService.updateHall({"checked": false}, 9);
   }
 
   return (
