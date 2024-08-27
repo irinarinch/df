@@ -32,7 +32,7 @@ const AdminPage = () => {
     useEffect(() => {
         const fecthData = async () => {
             setHalls(await hallService.getHalls());
-            setChairs(await chairService.getChairs());
+            // setChairs(await chairService.getChairs());
         };
 
         fecthData();
@@ -43,7 +43,7 @@ const AdminPage = () => {
             await hallService.createHall({});
 
             setHalls(await hallService.getHalls());
-            setChairs(await chairService.getChairs());
+            // setChairs(await chairService.getChairs());
         };
 
         fecthData();
@@ -54,65 +54,94 @@ const AdminPage = () => {
             await hallService.deleteHall(id);
 
             setHalls(await hallService.getHalls());
-            setChairs(await chairService.getChairs());
+            // setChairs(await chairService.getChairs());
         };
 
         fecthData();        
     }
 
     const selectHall = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const hall = halls.find((i) => i.id == +e.target.value);
-        if (!hall) return;
+        const fecthData = async () => {            
+            setHalls(await hallService.getHalls());
+            setChairs(await hallService.getChairs(+e.target.value));            
+        };
 
-        setCurrentHall(hall);        
+        fecthData(); 
+
+        const find = halls.find(hall => hall.id === +e.target.value);
+        if(!find) return;
+        setCurrentHall(find);
+          
         reset();
     };
 
-  const onRowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentRow(+e.target.value);
-  };
-
-  const onPlaceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentPlace(+e.target.value);
-  };
-
-
-
-  const reset = () => {
-    setCurrentRow(0);
-    setCurrentPlace(0);
-
-    document
-      .querySelectorAll(".conf-step__input")
-      .forEach((input) => (input.value = ""));
-  };
-
-  const onSubmit = () => {
-    console.log("submit");
-    const body = {
-      row: currentRow,
-      place: currentPlace,
+    const onRowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCurrentRow(+e.target.value);
     };
 
-    const fecthData = async () => {
-      const data = await hallService.updateHall(body, currentHall.id);
-      setCurrentHall(data);
+    const onPlaceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCurrentPlace(+e.target.value);
+    };
 
-      for (let i = 1; i <= currentRow; i++) {
-        for (let j = 1; j <= currentPlace; j++) {
-          chairService.createChair({
-            hall_id: currentHall.id,
-            hall_row: i,
-            place: j,
-          });
+
+
+    const reset = () => {
+        setCurrentRow(0);
+        setCurrentPlace(0);
+
+        document
+        .querySelectorAll(".conf-step__input")
+        .forEach((input) => (input.value = ""));
+    };
+
+    const saveHallConfig = () => {
+        console.log("submit");
+        const body = {
+            row: currentRow,
+            place: currentPlace,
+        };
+
+        const fecthData = async () => {
+            await hallService.updateHall(body, currentHall.id);            
+
+            for (let i = 1; i <= currentRow; i++) {
+                for (let j = 1; j <= currentPlace; j++) {
+                    const chair = chairs.find(
+                        (chair) => chair.hall_row === i && chair.place === j
+                    );
+
+                if (chair) {
+                // Обновить кресло
+                    await chairService.updateChair(chair.id, {
+                // ... обновленные данные кресла
+                    });
+                } else {
+            // Создать кресло
+                    await chairService.createChair({
+                    hall_id: currentHall.id,
+                    hall_row: i,
+                    place: j,
+                });
+                }
+            }
         }
-      }
 
-      reset();
+            const chairsToDelete = chairs.filter(
+                (chair) => chair.hall_row > currentRow || chair.place > currentPlace
+            );
+            for (const chair of chairsToDelete) {
+                await chairService.deleteChair(chair.id);
+            }
+        
+            await hallService.updateHall(body, currentHall.id);
+            
+
+                reset();
+                
+            };
+
+        fecthData();
     };
-
-    fecthData();
-  };
 
 
 
@@ -139,7 +168,7 @@ const AdminPage = () => {
                         chairs={chairs}
                     ></HallPlan>
 
-                    <Buttons_group onCancel={reset} onSubmit={onSubmit} />
+                    <Buttons_group onCancel={reset} onSubmit={saveHallConfig} />
                 </Section>
                 <Section title="Конфигурация цен">
                 <SelectorsBox array={halls} onChange={selectHall} />

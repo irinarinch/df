@@ -21,6 +21,7 @@ export interface IChair {
     'free': boolean, 
     'hall_id': number,
     'hall_row': number,
+    'place': number,
     'price': number,
     "created_at": string,
     "updated_at": string, 
