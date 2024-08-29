@@ -16,13 +16,14 @@ class ChairService {
   }
 
   // Создание нового кресла
-  async createChair(body: { hall_id: number; hall_row: number; place: number }) {
-    return await axios.post<IChair[]>(this.URL, body);
+  async createChair(body: { hall_id: number; hall_row: number; place: number; type: string}) {
+    const response =  await axios.post<IChair>(this.URL, body);
+    return response.data;
   }
 
   // Удаление кресла по ID
   async deleteChair(id: number) {
-    return await axios.delete(`${this.URL}/${id}`);
+    return await axios.delete(this.URL + '/' + id);
   }
 }
 

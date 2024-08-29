@@ -75,6 +75,15 @@ const AdminPage = () => {
         reset();
     };
 
+    const update = (id: number) => {
+        const fecthData = async () => {            
+            setHalls(await hallService.getHalls());
+            setChairs(await hallService.getChairs(id));            
+        };
+
+        fecthData(); 
+    }
+
     const onRowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCurrentRow(+e.target.value);
     };
@@ -95,52 +104,63 @@ const AdminPage = () => {
     };
 
     const saveHallConfig = () => {
-        console.log("submit");
         const body = {
             row: currentRow,
             place: currentPlace,
         };
-
-        const fecthData = async () => {
-            await hallService.updateHall(body, currentHall.id);            
-
+    
+        const fetchData = async () => {
+            // Получаем список кресел для текущего зала
+    
+            // Обновляем или создаем кресла
             for (let i = 1; i <= currentRow; i++) {
                 for (let j = 1; j <= currentPlace; j++) {
                     const chair = chairs.find(
                         (chair) => chair.hall_row === i && chair.place === j
                     );
+    
+                    if (chair) {
+                        // Обновить кресло
+                        await chairService.updateChair(chair.id, {
+                            // ... обновленные данные кресла
+                        });
+                        // Обновляем состояние после обновления кресла
+                        setChairs(prevChairs => prevChairs.map(c => c.id === chair.id ? chair : c));
+                    } else {
+                        // Создать кресло
+                        const newChair = await chairService.createChair({
+                            hall_id: currentHall.id,
+                            hall_row: i,
+                            place: j,
+                            type: "standart",
+                        });
 
-                if (chair) {
-                // Обновить кресло
-                    await chairService.updateChair(chair.id, {
-                // ... обновленные данные кресла
-                    });
-                } else {
-            // Создать кресло
-                    await chairService.createChair({
-                    hall_id: currentHall.id,
-                    hall_row: i,
-                    place: j,
-                });
+                       
+                    
+                        // Обновляем состояние после создания кресла
+                        setChairs(prevChairs => [...prevChairs, newChair]);
+                        console.log(chairs); 
+                    }
                 }
             }
-        }
-
+    
+            // Удаляем ненужные кресла
             const chairsToDelete = chairs.filter(
                 (chair) => chair.hall_row > currentRow || chair.place > currentPlace
             );
             for (const chair of chairsToDelete) {
                 await chairService.deleteChair(chair.id);
+                // Обновляем состояние после удаления кресла
+                setChairs(prevChairs => prevChairs.filter(c => c.id !== chair.id));
             }
-        
+    
             await hallService.updateHall(body, currentHall.id);
-            
-
-                reset();
-                
-            };
-
-        fecthData();
+ 
+            reset();
+        };
+    
+        fetchData();
+        
     };
 
 

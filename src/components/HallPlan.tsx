@@ -32,7 +32,7 @@ const HallPlan = ({ hall, editRow, editPlace, chairs }: IHallProps) => {
             // Добавляем найденное кресло в массив hallChairs 
             // или создаем заблокированное кресло, если кресло не найдено
             hallChairs[r - 1][p - 1] = chair || {
-              type: 'disabled',
+              type: 'standart',
               hall_row: r,
               place: p,
             };
