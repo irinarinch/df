@@ -9,6 +9,11 @@ class ChairService {
     return response.data;
   }
 
+  async getChairsForHall(hallId: number) {
+    const response = await axios.get<IChair[]>(`${this.URL}?hall_id=${hallId}`);
+    return response.data;
+  }
+
   // Обновление кресла по ID
   async updateChair(id: number, body: Partial<IChair>) {
     const response = await axios.patch<IChair>(`${this.URL}/${id}`, body);
@@ -22,8 +27,8 @@ class ChairService {
   }
 
   // Удаление кресла по ID
-  async deleteChair(id: number) {
-    return await axios.delete(this.URL + '/' + id);
+  async deleteChair(chair: IChair) {
+    return await axios.delete(this.URL + '/' + chair.id);
   }
 }
 

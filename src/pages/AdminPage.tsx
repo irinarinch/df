@@ -26,8 +26,8 @@ const AdminPage = () => {
     const [halls, setHalls] = useState<IHall[]>([]);
     const [chairs, setChairs] = useState<IChair[]>([]);
     const [currentHall, setCurrentHall] = useState<IHall>(halls[0]);
-    const [currentRow, setCurrentRow] = useState<number>(0);
-    const [currentPlace, setCurrentPlace] = useState<number>(0);
+    const [currentRow, setCurrentRow] = useState<number|null>(null);
+    const [currentPlace, setCurrentPlace] = useState<number|null>(null);
 
     useEffect(() => {
         const fecthData = async () => {
@@ -54,7 +54,9 @@ const AdminPage = () => {
             await hallService.deleteHall(id);
 
             setHalls(await hallService.getHalls());
-            // setChairs(await chairService.getChairs());
+            const array = await chairService.getChairsForHall(id);
+            array.forEach(c => chairService.deleteChair(c));
+
         };
 
         fecthData();        
@@ -95,12 +97,19 @@ const AdminPage = () => {
 
 
     const reset = () => {
-        setCurrentRow(0);
-        setCurrentPlace(0);
+        setCurrentRow(null);
+        setCurrentPlace(null);
 
         document
         .querySelectorAll(".conf-step__input")
         .forEach((input) => (input.value = ""));
+
+        const fecthData = async () => {            
+            setHalls(await hallService.getHalls());
+            setChairs(await hallService.getChairs(currentHall.id));            
+        };
+
+        fecthData(); 
     };
 
     const saveHallConfig = () => {
@@ -108,59 +117,72 @@ const AdminPage = () => {
             row: currentRow,
             place: currentPlace,
         };
+
+        if(!currentRow || !currentPlace) return;
     
         const fetchData = async () => {
             // Получаем список кресел для текущего зала
+            const currentChairs = await chairService.getChairsForHall(currentHall.id);
+            const updatedChairs = [...currentChairs]; // Создаём копию исходного состояния
     
-            // Обновляем или создаем кресла
+            // Обновляем или создаём кресла
             for (let i = 1; i <= currentRow; i++) {
                 for (let j = 1; j <= currentPlace; j++) {
-                    const chair = chairs.find(
-                        (chair) => chair.hall_row === i && chair.place === j
-                    );
+                    const chair = updatedChairs.find(chair => chair.hall_row === i && chair.place === j);
     
                     if (chair) {
                         // Обновить кресло
-                        await chairService.updateChair(chair.id, {
-                            // ... обновленные данные кресла
+                        const updatedChair = await chairService.updateChair(chair.id, {
+                            // Вставьте тут ваши обновленные данные кресла
+                            type: chair.type // возможно, тип кресла нужно обновить
                         });
-                        // Обновляем состояние после обновления кресла
-                        setChairs(prevChairs => prevChairs.map(c => c.id === chair.id ? chair : c));
+    
+                        // Обновляем кресло в локальной копии
+                        const index = updatedChairs.findIndex(c => c.id === chair.id);
+                        if (index !== -1) {
+                            updatedChairs[index] = updatedChair; // Заменяем обновлённое кресло
+                        }
+    
                     } else {
                         // Создать кресло
                         const newChair = await chairService.createChair({
                             hall_id: currentHall.id,
                             hall_row: i,
                             place: j,
-                            type: "standart",
+                            type: "standart", // или другой тип, если требуется
                         });
-
-                       
-                    
-                        // Обновляем состояние после создания кресла
-                        setChairs(prevChairs => [...prevChairs, newChair]);
-                        console.log(chairs); 
+    
+                        // Добавляем новое кресло в локальную копию
+                        updatedChairs.push(newChair);
                     }
                 }
             }
     
             // Удаляем ненужные кресла
-            const chairsToDelete = chairs.filter(
+            const chairsToDelete = currentChairs.filter(
                 (chair) => chair.hall_row > currentRow || chair.place > currentPlace
             );
-            for (const chair of chairsToDelete) {
-                await chairService.deleteChair(chair.id);
-                // Обновляем состояние после удаления кресла
-                setChairs(prevChairs => prevChairs.filter(c => c.id !== chair.id));
-            }
     
+            for (const chair of chairsToDelete) {
+                await chairService.deleteChair(chair);
+            }
+
+    
+            // Обновляем состояние единожды после всех операций
+            setChairs(updatedChairs);
+    
+            // Обновляем зал
             await hallService.updateHall(body, currentHall.id);
- 
-            reset();
+    
+            // setHalls(await hallService.getHalls());
+    
+            // console.log('submit ' + currentHall.id);
         };
     
+        // Вызываем fetchData
         fetchData();
-        
+          
+        console.log('submit ' + currentHall.id);
     };
 
 
