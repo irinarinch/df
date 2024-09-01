@@ -10,13 +10,13 @@ interface IHallProps {
     editRow: number | null;
     editPlace: number | null;
     chairs: IChair[];
+    onClick: (e: React.MouseEvent) => number;
 }
 
-const HallPlan = ({ hall, editRow, editPlace, chairs }: IHallProps) => {
-  const onClick = (e: React.MouseEvent) => {
-    console.log(e.target);
-    // Обработка клика, возможно изменение состояния кресел
-  };
+
+  
+
+const HallPlan = ({ hall, editRow, editPlace, chairs, onClick }: IHallProps) => {
 
   const show = (row: number, place: number) => {
     const hallChairs: IChair[][] = [];
@@ -81,3 +81,5 @@ const HallPlan = ({ hall, editRow, editPlace, chairs }: IHallProps) => {
 };
 
 export default HallPlan;
+
+
