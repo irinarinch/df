@@ -30,38 +30,19 @@ const AdminPage = () => {
     const [currentPlace, setCurrentPlace] = useState<number|null>(null);
     const array = [];
 
-    useEffect(() => {
-        const fecthData = async () => {
-            setHalls(await hallService.getHalls());
-            // setChairs(await chairService.getChairs());
-        };
+    const fetch = async (string: string = '', id: number = 0) => {
+        if(string === 'create') {
+            await hallService.createHall({});  
+        } else if(string === 'removeHall') {
+            await hallService.removeHall(id); 
+        }
+        setHalls(await hallService.getHalls());
+    }; 
 
-        fecthData();
+    useEffect(() => {
+        fetch();
     }, []);
 
-    const createHall = () => {
-        const fecthData = async () => {
-            await hallService.createHall({});
-
-            setHalls(await hallService.getHalls());
-            // setChairs(await chairService.getChairs());
-        };
-
-        fecthData();
-    };
-
-    const removeHall = (id: number) => {
-        const fecthData = async () => {
-            await hallService.deleteHall(id);
-
-            setHalls(await hallService.getHalls());
-            const array = await chairService.getChairsForHall(id);
-            array.forEach(c => chairService.deleteChair(c));
-
-        };
-
-        fecthData();        
-    }
 
     const selectHall = (e: React.ChangeEvent<HTMLInputElement>) => {
         const fecthData = async () => {            
@@ -99,14 +80,16 @@ const AdminPage = () => {
 
 
     const reset = () => {
-        setCurrentRow(null);
-        setCurrentPlace(null);
+        // setCurrentRow(null);
+        // setCurrentPlace(null);
 
         document
         .querySelectorAll(".conf-step__input")
         .forEach((input) => (input.value = ""));
 
     };
+
+
 
     const saveHallConfig = () => {
         console.log('saveHallConfig');
@@ -173,7 +156,7 @@ const AdminPage = () => {
             );
     
             for (const chair of chairsToDelete) {
-                await chairService.deleteChair(chair);
+                await chairService.removeChair(chair);
             }
 
     
@@ -218,8 +201,8 @@ const AdminPage = () => {
             <Main>
                 <Section title="Управление залами">
                     <Paragraph title="Доступные залы:" />
-                    <HallsList halls={halls} onClick={removeHall} />
-                    <Button caption="Создать зал" onClick={createHall} />
+                    <HallsList halls={halls} onClick={async (id: number) => fetch('removeHall', id)} />
+                    <Button caption="Создать зал" onClick={async () => fetch('create')} />
                 </Section>
                 <Section title="Конфигурация залов">
                     <SelectorsBox array={halls} onChange={selectHall} />
@@ -230,8 +213,6 @@ const AdminPage = () => {
 
                     <HallPlan
                         hall={currentHall}
-                        editRow={currentRow}
-                        editPlace={currentPlace}
                         chairs={chairs}
                         onClick={getChairId}
                     ></HallPlan>

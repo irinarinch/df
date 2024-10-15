@@ -1,5 +1,6 @@
 import axios from "axios";
 import { IChair, IHall } from "../types";
+import { chairService } from "../services/chair.service";
 
 class HallService {
     private URL = 'http://localhost:8000/api/halls';
@@ -23,8 +24,10 @@ class HallService {
         return response.data;
     }
 
-    async deleteHall(id: number) {
-        return await axios.delete(this.URL + '/' + id);
+    async removeHall(id: number) {
+        await axios.delete(this.URL + '/' + id);
+        const array = await chairService.getChairsForHall(id);
+        array.forEach(c => chairService.removeChair(c));
     }
 }
 
