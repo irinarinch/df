@@ -25,56 +25,60 @@ import { chairService } from "../services/chair.service";
 const AdminPage = () => {
     const [halls, setHalls] = useState<IHall[]>([]);
     const [chairs, setChairs] = useState<IChair[]>([]);
-    const [currentHall, setCurrentHall] = useState<IHall>(halls[0]);
-    const [currentRow, setCurrentRow] = useState<number|null>(null);
-    const [currentPlace, setCurrentPlace] = useState<number|null>(null);
+    const [currentHall, setCurrentHall] = useState<IHall|null>(null);
+    const [currentRow, setCurrentRow] = useState<number|null>(currentHall ? currentHall.row : null);
+    const [currentPlace, setCurrentPlace] = useState<number|null>(currentHall ? currentHall.place : null);
     const array = [];
 
     const fetch = async (string: string = '', id: number = 0) => {
-        if(string === 'create') {
+        if (string === 'create') {
             await hallService.createHall({});  
-        } else if(string === 'removeHall') {
+        } else if (string === 'removeHall') {
             await hallService.removeHall(id); 
+        } else if (string === 'selectHall') {
+            const find = halls.find(hall => hall.id === id);
+            if(!find) return;
+            console.log(id);
+            setCurrentHall(find);
+            setCurrentRow(find.row); 
+            setCurrentPlace(find.place);
+            setChairs(await chairService.getChairsForHall(find.id))          
+        } else if (string === 'save') {
+            console.log('submit');
+            const body = {
+                row: currentRow,
+                place: currentPlace,
+            };
+            await hallService.updateHall(body, id);
         }
+        
         setHalls(await hallService.getHalls());
+        
     }; 
 
     useEffect(() => {
         fetch();
     }, []);
 
-
-    const selectHall = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const fecthData = async () => {            
-            setHalls(await hallService.getHalls());
-            setChairs(await hallService.getChairs(+e.target.value));            
-        };
-
-        fecthData(); 
-
-        const find = halls.find(hall => hall.id === +e.target.value);
-        if(!find) return;
-        setCurrentHall(find);
-        setCurrentRow(find.row);
-        setCurrentPlace(find.place);  
-        reset();
-    };
-
     const update = (id: number) => {
         const fecthData = async () => {            
             setHalls(await hallService.getHalls());
-            setChairs(await hallService.getChairs(id));            
+                       
         };
 
         fecthData(); 
     }
 
     const onRowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log('tyk row ' + +e.target.value);
         setCurrentRow(+e.target.value);
+        console.log(currentRow);
     };
 
     const onPlaceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log('tyk place');
         setCurrentPlace(+e.target.value);
+        console.log(currentPlace);
     };
 
 
@@ -90,13 +94,16 @@ const AdminPage = () => {
     };
 
 
+    
+
+
 
     const saveHallConfig = () => {
-        console.log('saveHallConfig');
-        const body = {
-            row: currentRow,
-            place: currentPlace,
-        };
+
+        // const body = {
+        //     row: currentRow,
+        //     place: currentPlace,
+        // };
 
         if(!currentRow || !currentPlace) return;
     
@@ -161,7 +168,7 @@ const AdminPage = () => {
 
     
             // Обновляем состояние единожды после всех операций
-            setChairs(updatedChairs);
+            
     
             // Обновляем зал
             await hallService.updateHall(body, currentHall.id);
@@ -173,8 +180,8 @@ const AdminPage = () => {
     
         // Вызываем fetchData
         fetchData();
-          
-        console.log('submit ' + currentHall.id);
+
+   
     };
 
 
@@ -199,28 +206,31 @@ const AdminPage = () => {
         <>
             <Header />
             <Main>
-                <Section title="Управление залами">
+                <Section title="Управление залами"> 
                     <Paragraph title="Доступные залы:" />
                     <HallsList halls={halls} onClick={async (id: number) => fetch('removeHall', id)} />
                     <Button caption="Создать зал" onClick={async () => fetch('create')} />
                 </Section>
                 <Section title="Конфигурация залов">
-                    <SelectorsBox array={halls} onChange={selectHall} />
+                    <SelectorsBox array={halls} onChange={async (e: React.ChangeEvent<HTMLInputElement>) => fetch('selectHall', +e.target.value)} />
                     <HallCapacitySelectorBox
                         onRowChange={onRowChange}
-                        onPlaceChange={onPlaceChange}
+                        onPlaceChange={onPlaceChange} 
+                        currentRow={currentRow} 
+                        currentPlace={currentPlace} 
+                        hall={currentHall}                       
                     />
 
                     <HallPlan
-                        hall={currentHall}
-                        chairs={chairs}
-                        onClick={getChairId}
+                        hall={currentHall} 
+                        currentRow={currentRow} 
+                        currentPlace={currentPlace}                    
                     ></HallPlan>
 
-                    <Buttons_group onCancel={reset} onSubmit={saveHallConfig} />
+                    <Buttons_group onCancel={reset} onSubmit={async () => fetch('save', currentHall?.id)} />
                 </Section>
                 <Section title="Конфигурация цен">
-                <SelectorsBox array={halls} onChange={selectHall} />
+                <SelectorsBox array={halls} onChange={()=>{}} />
                 <Paragraph title="Установите цены для типов кресел:" />
                 <div className="conf-step__legend">
                     <label className="conf-step__label">
