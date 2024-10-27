@@ -24,25 +24,26 @@ import { chairService } from "../services/chair.service";
 
 const AdminPage = () => {
     const [halls, setHalls] = useState<IHall[]>([]);
-    const [chairs, setChairs] = useState<IChair[]>([]);
-    const [currentHall, setCurrentHall] = useState<IHall|null>(null);
-    const [currentRow, setCurrentRow] = useState<number|null>(currentHall ? currentHall.row : null);
-    const [currentPlace, setCurrentPlace] = useState<number|null>(currentHall ? currentHall.place : null);
-    const array = [];
+    // const [chairs, setChairs] = useState<IChair[]>([]);
+    const [currentHall, setCurrentHall] = useState<IHall | null>(null);
+    const [currentRow, setCurrentRow] = useState<number | null>(currentHall ? currentHall.row : null);
+    const [currentPlace, setCurrentPlace] = useState<number | null>(currentHall ? currentHall.place : null);
+    let updatedChairs: IChair[] = [];
 
     const fetch = async (string: string = '', id: number = 0) => {
         if (string === 'create') {
-            await hallService.createHall({});  
+            await hallService.createHall({});
         } else if (string === 'removeHall') {
-            await hallService.removeHall(id); 
+            await hallService.removeHall(id);
         } else if (string === 'selectHall') {
             const find = halls.find(hall => hall.id === id);
-            if(!find) return;
+            if (!find) return;
             console.log(id);
             setCurrentHall(find);
-            setCurrentRow(find.row); 
+            setCurrentRow(find.row);
             setCurrentPlace(find.place);
-            setChairs(await chairService.getChairsForHall(find.id))          
+            // setChairs(await chairService.getChairsForHall(find.id));
+            updatedChairs = [];
         } else if (string === 'save') {
             console.log('submit');
             const body = {
@@ -50,23 +51,24 @@ const AdminPage = () => {
                 place: currentPlace,
             };
             await hallService.updateHall(body, id);
+            console.log(updatedChairs);
         }
-        
+
         setHalls(await hallService.getHalls());
-        
-    }; 
+
+    };
 
     useEffect(() => {
         fetch();
     }, []);
 
     const update = (id: number) => {
-        const fecthData = async () => {            
+        const fecthData = async () => {
             setHalls(await hallService.getHalls());
-                       
+
         };
 
-        fecthData(); 
+        fecthData();
     }
 
     const onRowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,13 +90,13 @@ const AdminPage = () => {
         // setCurrentPlace(null);
 
         document
-        .querySelectorAll(".conf-step__input")
-        .forEach((input) => (input.value = ""));
+            .querySelectorAll(".conf-step__input")
+            .forEach((input) => (input.value = ""));
 
     };
 
 
-    
+
 
 
 
@@ -105,22 +107,22 @@ const AdminPage = () => {
         //     place: currentPlace,
         // };
 
-        if(!currentRow || !currentPlace) return;
-    
+        if (!currentRow || !currentPlace) return;
+
         const fetchData = async () => {
             // Получаем список кресел для текущего зала
             const currentChairs = await chairService.getChairsForHall(currentHall.id);
-            if(array.length == 0) {
+            if (array.length == 0) {
                 console.log('array');
             }
-            
+
             const updatedChairs = [...currentChairs]; // Создаём копию исходного состояния
-           
+
             // Обновляем или создаём кресла
             for (let i = 1; i <= currentRow; i++) {
                 for (let j = 1; j <= currentPlace; j++) {
                     const chair = updatedChairs.find(chair => chair.hall_row === i && chair.place === j);
-                    
+
                     if (chair) {
                         const up = array.find(item => item.id === chair.id);
                         if (up) {
@@ -136,10 +138,10 @@ const AdminPage = () => {
                                 updatedChairs[index] = updatedChair; // Заменяем обновлённое кресло
                             }
                         }
-                        
 
-      
-    
+
+
+
                     } else {
                         // Создать кресло
                         const newChair = await chairService.createChair({
@@ -148,40 +150,40 @@ const AdminPage = () => {
                             place: j,
                             type: "standart", // или другой тип, если требуется
                         });
-    
+
                         // Добавляем новое кресло в локальную копию
                         updatedChairs.push(newChair);
 
-                
+
                     }
                 }
             }
-    
+
             // Удаляем ненужные кресла
             const chairsToDelete = currentChairs.filter(
                 (chair) => chair.hall_row > currentRow || chair.place > currentPlace
             );
-    
+
             for (const chair of chairsToDelete) {
                 await chairService.removeChair(chair);
             }
 
-    
+
             // Обновляем состояние единожды после всех операций
-            
-    
+
+
             // Обновляем зал
             await hallService.updateHall(body, currentHall.id);
-    
+
             // setHalls(await hallService.getHalls());
-    
+
             // console.log('submit ' + currentHall.id);
         };
-    
+
         // Вызываем fetchData
         fetchData();
 
-   
+
     };
 
 
@@ -189,16 +191,36 @@ const AdminPage = () => {
         const types = ['standart', 'vip', 'disabled'];
         const ind = types.findIndex(i => e.target.dataset.type === i);
         console.log(ind);
-        e.target.dataset.type = types[(ind + 1)%3];
+        e.target.dataset.type = types[(ind + 1) % 3];
         e.target.className = `conf-step__chair conf-step__chair_${e.target.dataset.type}`;
-        
+
         if (!array.find(item => (item.row === e.target.dataset.row) && (item.place === e.target.dataset.place))) {
             array.push(e.target.dataset);
         }
         console.log(array);
     };
-      
-    
+
+
+    const changeChairType = (e: any) => {
+        const classes = [
+            "conf-step__chair conf-step__chair_standart",
+            "conf-step__chair conf-step__chair_vip",
+            "conf-step__chair conf-step__chair_disabled",
+        ];
+
+        const types = [
+            "standart",
+            "vip",
+            "disabled"
+        ];
+        const newClassIndex = (types.indexOf(e.target.dataset.type) + 1) % types.length;
+        // chair.type = types[newClassIndex];
+        e.target.className = classes[newClassIndex];
+        // e.target.dataset.type = chair.type;
+        console.log(updatedChairs);
+    }
+
+
 
 
 
@@ -206,7 +228,7 @@ const AdminPage = () => {
         <>
             <Header />
             <Main>
-                <Section title="Управление залами"> 
+                <Section title="Управление залами">
                     <Paragraph title="Доступные залы:" />
                     <HallsList halls={halls} onClick={async (id: number) => fetch('removeHall', id)} />
                     <Button caption="Создать зал" onClick={async () => fetch('create')} />
@@ -215,61 +237,63 @@ const AdminPage = () => {
                     <SelectorsBox array={halls} onChange={async (e: React.ChangeEvent<HTMLInputElement>) => fetch('selectHall', +e.target.value)} />
                     <HallCapacitySelectorBox
                         onRowChange={onRowChange}
-                        onPlaceChange={onPlaceChange} 
-                        currentRow={currentRow} 
-                        currentPlace={currentPlace} 
-                        hall={currentHall}                       
+                        onPlaceChange={onPlaceChange}
+                        currentRow={currentRow}
+                        currentPlace={currentPlace}
+                        hall={currentHall}
                     />
 
                     <HallPlan
-                        hall={currentHall} 
-                        currentRow={currentRow} 
-                        currentPlace={currentPlace}                    
+                        hall={currentHall}
+                        currentRow={currentRow}
+                        currentPlace={currentPlace}
+                        updatedChairs={updatedChairs}
+                        onClick={(e) => changeChairType(e)}
                     ></HallPlan>
 
                     <Buttons_group onCancel={reset} onSubmit={async () => fetch('save', currentHall?.id)} />
                 </Section>
                 <Section title="Конфигурация цен">
-                <SelectorsBox array={halls} onChange={()=>{}} />
-                <Paragraph title="Установите цены для типов кресел:" />
-                <div className="conf-step__legend">
-                    <label className="conf-step__label">
-                    Цена, рублей
-                    <input type="text" className="conf-step__input" placeholder="0" />
-                    </label>
-                    за{" "}
-                    <span className="conf-step__chair conf-step__chair_standart"></span>{" "}
-                    обычные кресла
-                </div>
-                <div className="conf-step__legend">
-                    <label className="conf-step__label">
-                    Цена, рублей
-                    <input
-                        type="text"
-                        className="conf-step__input"
-                        placeholder="0"
-                        defaultValue="350"
-                    />
-                    </label>
-                    за <span className="conf-step__chair conf-step__chair_vip"></span>{" "}
-                    VIP кресла
-                </div>
-                <Buttons_group />
+                    <SelectorsBox array={halls} onChange={() => { }} />
+                    <Paragraph title="Установите цены для типов кресел:" />
+                    <div className="conf-step__legend">
+                        <label className="conf-step__label">
+                            Цена, рублей
+                            <input type="text" className="conf-step__input" placeholder="0" />
+                        </label>
+                        за{" "}
+                        <span className="conf-step__chair conf-step__chair_standart"></span>{" "}
+                        обычные кресла
+                    </div>
+                    <div className="conf-step__legend">
+                        <label className="conf-step__label">
+                            Цена, рублей
+                            <input
+                                type="text"
+                                className="conf-step__input"
+                                placeholder="0"
+                                defaultValue="350"
+                            />
+                        </label>
+                        за <span className="conf-step__chair conf-step__chair_vip"></span>{" "}
+                        VIP кресла
+                    </div>
+                    <Buttons_group />
                 </Section>
                 <Section title={"Сетка сеансов"}>
-                <Paragraph
-                    title={<Button caption="Добавить фильм" onClick={() => {}} />}
-                />
-                <Movies>
-                    <Movie></Movie>
-                    <Movie></Movie>
-                    <Movie></Movie>
-                    <Movie></Movie>
-                    <Movie></Movie>
-                </Movies>
-                <Sessions>
-                    <Session></Session>
-                </Sessions>
+                    <Paragraph
+                        title={<Button caption="Добавить фильм" onClick={() => { }} />}
+                    />
+                    <Movies>
+                        <Movie></Movie>
+                        <Movie></Movie>
+                        <Movie></Movie>
+                        <Movie></Movie>
+                        <Movie></Movie>
+                    </Movies>
+                    <Sessions>
+                        <Session></Session>
+                    </Sessions>
                 </Section>
             </Main>
         </>

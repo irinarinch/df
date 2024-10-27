@@ -5,9 +5,10 @@ import Chair from './Chair';
 interface RowProps {
   row: number; // Номер текущего ряда
   chairs: IChair[]; // Все кресла
+  onClick: ()=>void;
 }
 
-const Row = ({ row, chairs }: RowProps) => {
+const Row = ({ row, chairs, onClick }: RowProps) => {
   // Фильтруем кресла для текущего ряда
   
 
@@ -17,7 +18,7 @@ const Row = ({ row, chairs }: RowProps) => {
         <Chair
           key={`${row}-${place}`}
           chair={chair}
-          onClick={(e) => {console.log(chair.type)}}
+          onClick={onClick}
         />
       ))}
     </div>

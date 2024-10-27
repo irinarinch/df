@@ -9,17 +9,16 @@ interface IHallProps {
     hall: IHall|null;
     currentRow: number;
     currentPlace: number;
-    // chairs: IChair[];
-    // onClick: (e: React.MouseEvent) => number;
+    updatedChairs: IChair[];
+    onClick: () => void;
 }
 
-const HallPlan = ({hall, currentRow, currentPlace}: IHallProps) => {
+const HallPlan = ({hall, currentRow, currentPlace, updatedChairs, onClick}: IHallProps) => {
     const [chairs, setChairs] = useState<IChair[]>([]);    
     
     const fetch = async () => {
         if (!hall) return; 
         setChairs(await hallService.getChairs(hall.id));
-        
     }; 
 
     useEffect(() => {
@@ -27,12 +26,37 @@ const HallPlan = ({hall, currentRow, currentPlace}: IHallProps) => {
     }, [hall]);
 
     const foo = () => {
-        const updatedChairs: IChair[] = [];
+        updatedChairs = [...chairs];
+       
         for (let i = 1; i <= currentRow; i++) {
             for (let j = 1; j <= currentPlace; j++) {
                 const chair = updatedChairs.find(chair => chair.hall_row === i && chair.place === j);
-                
-                if (chair) {
+                if(chair){console.log('is chair')}
+                if(!chair){
+                    const newChair: IChair = {
+                        hall_id: hall?.id,
+                        hall_row: i,
+                        place: j,
+                        type: "standart", // или другой тип, если требуется
+                    };
+
+                    // Добавляем новое кресло в локальную копию
+                    updatedChairs.push(newChair);
+                }
+               // console.log(chair?.id);
+               
+                   // console.log('updatedChairs ' + updatedChairs[0]?.type);
+                    // // Создать кресло
+                    // const newChair: IChair = {
+                    //     hall_id: hall?.id,
+                    //     hall_row: i,
+                    //     place: j,
+                    //     type: "standart", // или другой тип, если требуется
+                    // };
+
+                    // // Добавляем новое кресло в локальную копию
+                    // updatedChairs.push(newChair);
+                   
                     /*
                     const up = array.find(item => item.id === chair.id);
                     if (up) {
@@ -41,7 +65,7 @@ const HallPlan = ({hall, currentRow, currentPlace}: IHallProps) => {
                             "type": `${up.type}` // возможно, тип кресла нужно обновить
                         });
 
-                        console.log(updatedChair);
+                       // console.log(updatedChair);
                         // Обновляем кресло в локальной копии
                         const index = updatedChairs.findIndex(c => c.id === chair.id);
                         if (index !== -1) {
@@ -53,43 +77,30 @@ const HallPlan = ({hall, currentRow, currentPlace}: IHallProps) => {
 
   
 
-                } else {
-                    console.log('updatedChairs ' + updatedChairs[0]?.type);
-                    // Создать кресло
-                    const newChair: IChair = {
-                        hall_id: hall?.id,
-                        hall_row: i,
-                        place: j,
-                        type: "standart", // или другой тип, если требуется
-                    };
-
-                    // Добавляем новое кресло в локальную копию
-                    updatedChairs.push(newChair);
-
-            
-                }
+               
             }
+           // console.log(updatedChairs);
         }
-        console.log(updatedChairs);
+        
         return updatedChairs;
     }
     
     const show = (chairs: IChair[]) => {  // решить как показывать локальную версию
         if (chairs.length === 0) {
-            const updatedChairs = foo();
+            const local = foo();
             const rows = [];
-            for (let i = 1; i < currentRow; i++) {
+            for (let i = 1; i <= currentRow; i++) {
                 rows.push(
                     <Row
                         key={i} 
                         row={i} 
-                        chairs={updatedChairs.filter(chair => chair.hall_row === i)} 
-                       
+                        chairs={local.filter(chair => chair.hall_row === i)} 
+                        onClick={onClick}                      
                     />
                 );
             }
     
-            // console.log("hallplane");
+            //// console.log("hallplane");
             return rows;
         }
         // if (chairs.length === 0 && (hall?.row === 0 || hall?.place === 0)) return;
